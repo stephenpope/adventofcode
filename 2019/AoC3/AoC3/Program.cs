@@ -21,14 +21,14 @@ namespace AoC3
             //     Console.WriteLine($"Intersect: {x} + {y}");
             // }
             
-            Console.WriteLine("Closest = " + intersections.Min(p => Math.Abs(p.x) + Math.Abs(p.y))); // Abs = handle minus numbers
+            Console.WriteLine("Closest = " + intersections.Min(p => Math.Abs(p.x) + Math.Abs(p.y))); // Abs = change negative numbers into positive
                 
             Console.WriteLine("Shortest length = " + intersections.Min(x => journey1[x] + journey2[x]));
         }
         
         private static Dictionary<(int x, int y), int> WalkPath(string input)
         {
-            var pointData = new Dictionary<(int, int), int>();
+            var pointData = new Dictionary<(int, int), int>(); // K = Tuple(X + Y) - V = Total 
 
             var x = 0;
             var y = 0; 
@@ -37,17 +37,17 @@ namespace AoC3
             foreach (var coordinate in input.Split(","))
             {
                 var direction = coordinate[0].ToString();
-                var distance = int.Parse(coordinate[1..]); // Index 1 => the end of the string
+                var distance = int.Parse(coordinate[1..]); // Fancy pants C#8 .. Index 1 => the end of the current string
                 
                 for (var step = 0; step < distance; step++)
                 {
-                    var point = direction switch
+                    var point = direction switch //More fancy pants C#8
                     {
-                        "R" => (++x, y),
+                        "R" => (++x, y), //++x NOT x++
                         "D" => (x, --y),
                         "L" => (--x, y),
                         "U" => (x, ++y),
-                        _ => throw new Exception()
+                        _ => throw new Exception() // Rider suggested this !
                     };
                     pointData.TryAdd(point, ++totalLength);
                 }

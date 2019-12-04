@@ -32,7 +32,7 @@ namespace AoC4
             //Sort
             Array.Sort(input);
 
-            // If the sorted array matches the original then that number is in the correct order
+            // If the sorted array matches the original then that number is in the correct (ascending) order
             if (!input.SequenceEqual(original)) return false;
             
             if (strict) //For Part2

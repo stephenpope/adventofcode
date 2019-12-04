@@ -39,7 +39,7 @@ namespace AoC2
             
             var cursor = 0;
 
-            program[1] = noun;
+            program[1] = noun; // Patch noun + verb
             program[2] = verb;
             
             for (var pos = 0; pos < program.Length; pos+=cursor)
@@ -48,14 +48,14 @@ namespace AoC2
                 {
                     case 1: //ADD
                         program[program[pos + 3]] = program[program[pos + 1]] + program[program[pos + 2]];
-                        cursor = 4;
+                        cursor = 4; // Move cursor by 4
                         break;
                     case 2: //MULTIPLY
                         program[program[pos + 3]] = program[program[pos + 1]] * program[program[pos + 2]];
                         cursor = 4;
                         break;
                     case 99:
-                        return program;
+                        return program; //Exit
                 } 
             }
 
