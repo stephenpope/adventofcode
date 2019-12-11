@@ -41,7 +41,7 @@ namespace AoC9
                 //Get OpCode (xxx00)
                 var opCode = int.Parse(instruction[3..]);
 
-                long GetArgument(int argPos)
+                long ReadArgument(int argPos)
                 {
                     switch (instruction[3 - argPos])
                     {
@@ -69,11 +69,11 @@ namespace AoC9
                 switch (opCode)
                 {
                     case 1: //ADD
-                        WriteArgument(3, GetArgument(1) + GetArgument(2));
+                        WriteArgument(3, ReadArgument(1) + ReadArgument(2));
 
                         break;
                     case 2: //MULTIPLY
-                        WriteArgument(3, GetArgument(1) * GetArgument(2));
+                        WriteArgument(3, ReadArgument(1) * ReadArgument(2));
 
                         break;
                     case 3: //INPUT
@@ -90,7 +90,7 @@ namespace AoC9
                         break;
                     case 4: //OUTPUT
 
-                        _output = GetArgument(1);
+                        _output = ReadArgument(1);
 
                         if (_output > 0 && _piped)
                         {
@@ -102,35 +102,35 @@ namespace AoC9
                         break;
                     case 5: //JUMP IF TRUE
                         
-                        if (GetArgument(1) > 0)
+                        if (ReadArgument(1) > 0)
                         {
-                            pos = GetArgument(2);
+                            pos = ReadArgument(2);
                             continue;
                         }
 
                         break;
                     case 6: //JUMP IF FALSE
 
-                        if (GetArgument(1) == 0)
+                        if (ReadArgument(1) == 0)
                         {
-                            pos = GetArgument(2);
+                            pos = ReadArgument(2);
                             continue;
                         }
 
                         break;
                     case 7: //LESS THAN
 
-                        WriteArgument(3, GetArgument(1) < GetArgument(2) ? 1 : 0);
+                        WriteArgument(3, ReadArgument(1) < ReadArgument(2) ? 1 : 0);
 
                         break;
                     case 8: //EQUALS
                         
-                        WriteArgument(3, GetArgument(1) == GetArgument(2) ? 1 : 0);
+                        WriteArgument(3, ReadArgument(1) == ReadArgument(2) ? 1 : 0);
 
                         break;
                     case 9: //RELATIVE BASE
 
-                        _relativeBase += GetArgument(1);
+                        _relativeBase += ReadArgument(1);
                         
                         break;
                     case 99:
