@@ -9,7 +9,6 @@ namespace AoC10
     {
         public int X { get; }
         public int Y { get; }
-
         public Asteroid(int x, int y)
         {
             X = x;
@@ -23,7 +22,6 @@ namespace AoC10
         public double Distance { get; set; }
         public Asteroid StartRoid { get; set; }
         public Asteroid EndRoid { get; set; }
-        
         public bool Destroyed { get; set; }
     }
 
@@ -31,27 +29,13 @@ namespace AoC10
     {
         static void Main(string[] args)
         {
-            var y = 0;
-
-            var asteroids = new List<Asteroid>();
-
-            foreach (var line in Data.rawData.Split('\n', StringSplitOptions.RemoveEmptyEntries))
-            {
-                for (var x = 0; x < line.Length; x++)
-                {
-                    if (line[x] == '#')
-                    {
-                        asteroids.Add(new Asteroid(x, y));
-                    }
-                }
-
-                y++;
-            }
+            var asteroids = LoadAsteroidData(Data.rawData).ToList();
 
             var (startRoid, highestHit) = FindBestLocation(asteroids);
             
             Console.WriteLine($"Best: {startRoid.X}/{startRoid.Y} => {highestHit}");
 
+            // Part 2 - Calculate distance (so we can sort by distance)
             var fullLocationData = asteroids
                 .Where(asteroid => startRoid != asteroid)
                 .Select(endRoid => new LocationData
@@ -72,6 +56,7 @@ namespace AoC10
             {
                 var firingSet = new List<LocationData>();
 
+                // Order by angle (so 'straight up' is first) - then sort by distance (so closest is first)
                 foreach (var data in fullLocationData.OrderBy(x => (180 - x.Angle) % 180).ThenBy(x => x.Distance))
                 {
                     if (data.Destroyed) continue;
@@ -88,7 +73,24 @@ namespace AoC10
             }
         }
 
-        private static (Asteroid bestRoid, int highestHit) FindBestLocation(IEnumerable<Asteroid> asteroids)
+        private static IEnumerable<Asteroid> LoadAsteroidData(string rawData)
+        {
+            var y = 0;
+            
+            foreach (var line in rawData.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                for (var x = 0; x < line.Length; x++)
+                {
+                    if (line[x] != '#') continue;
+                    
+                    yield return new Asteroid(x, y);
+                }
+
+                y++;
+            }
+        }
+
+        private static (Asteroid bestRoid, int highestHit) FindBestLocation(IList<Asteroid> asteroids)
         {
             var highest = 0;
             Asteroid bestRoid = null;
@@ -108,7 +110,7 @@ namespace AoC10
                 highest = angles.Count;
                 bestRoid = startRoid;
             }
-
+            
             return (bestRoid, highest);
         }
     }
