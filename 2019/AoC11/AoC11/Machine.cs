@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AoC9
+namespace AoC11
 {
     public class Machine
     {
