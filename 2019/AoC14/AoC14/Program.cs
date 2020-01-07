@@ -17,7 +17,7 @@ namespace AoC14
             
             Console.WriteLine("Part I - ORE Needed : " + partOne);
 
-            const long oreCollection = 1000000000000;
+            const long oreCollection = 1000000000000; // 1 Trillion!
             long upperBound = 0;
             long lowerBound = 1;
 
