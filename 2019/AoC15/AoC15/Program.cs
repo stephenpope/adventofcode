@@ -45,16 +45,16 @@ namespace AoC15
             var maxY = _mazeData.Keys.Max(k => k.Y);
             
             //DrawMaze(minX, maxX, minY, maxY);
-
+            
             offsetX = Math.Abs(minX); // Convert minus numbers to absolute to create offset
             offsetY = Math.Abs(minY);
-
+            
             sizeX = maxX + offsetX; // Use offset to correct minus location values
             sizeY = maxY + offsetY;
-
+            
             var startPoint = new Point(_startLocation.X + offsetX, _startLocation.Y + offsetY);
             var endPoint = new Point(_endLocation.X + offsetX, _endLocation.Y + offsetY);
-
+            
             var distance = BFS(startPoint, endPoint);
             Console.WriteLine("Part I  - Shortest Path   : " + distance);
             
@@ -80,14 +80,15 @@ namespace AoC15
                 // Try to step in that direction ..
                 var result = StepMachine(dirNum[i]);
                 _mazeData.Add(lookPoint, result);
-
-                if (result == 0) continue;
                 
+                if (result == 0) continue; // Wall
+
                 Walk(lookPoint);
+                
                 //Step back to where you were..
                 StepMachine(oppNum[i]);
-                    
-                if (result == 2)
+
+                if (result == 2) // OxygenPump
                 {
                     _endLocation = new Point(lookPoint.X, lookPoint.Y);
                 }
@@ -96,9 +97,7 @@ namespace AoC15
 
         public long StepMachine(long input)
         {
-            var (outputValue, isComplete) = _machine.Execute(input);
-
-            return outputValue;
+            return _machine.Execute(input).outputValue;
         }
 
         public long BFS(Point startNode, Point targetNode, bool fullWalk = false)
