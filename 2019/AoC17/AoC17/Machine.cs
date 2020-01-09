@@ -4,6 +4,8 @@ using System.Linq;
 
 namespace AoC17
 {
+    public delegate void IntCodeOutputWriter (long output);
+    
     public class Machine
     {
         private readonly int? _sequenceCode;
@@ -12,6 +14,8 @@ namespace AoC17
         private long _positionMemory;
         private long _relativeBase;
         private readonly bool _exitOnOutput;
+        
+        public event IntCodeOutputWriter OutputWriter;
 
         public Machine(string rawData) : this(rawData, false, null)
         {
@@ -25,7 +29,7 @@ namespace AoC17
         {
             _sequenceCode = sequenceCode;
             _program = rawData.Split(',').Select(long.Parse).ToArray();
-            Array.Resize(ref _program, 5000);
+            Array.Resize(ref _program, 15000);
             _exitOnOutput = exitOnOutput;
         }
 
@@ -114,6 +118,10 @@ namespace AoC17
                             _positionMemory = pos + 2;
 
                             return (_output, false);
+                        }
+                        else
+                        {
+                            OutputWriter(_output);
                         }
 
                         break;

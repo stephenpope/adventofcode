@@ -30,11 +30,20 @@ namespace AoC17
             
             var machineTwo = new Machine(Data.rawData);
             machineTwo.PatchMemory(0,2); // Set correct mode.
+            machineTwo.OutputWriter += OutputConsole; 
             
             var intProgram = string.Join('\n', program, a, b, c, "n", string.Empty).ToCharArray().Select(x => (long)x).ToArray();
-            
+
             var result = machineTwo.Execute(intProgram);
             Console.WriteLine("Part II - Space Dust: " + result.outputValue);
+        }
+
+        private static void OutputConsole (long output)
+        {
+            if (output < 127)
+            {
+                Console.Write((char) output);
+            }
         }
     }
 
