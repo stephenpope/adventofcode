@@ -8,22 +8,22 @@ namespace AoC11
     {
         static void Main(string[] args)
         {
-            var robotOne = new Robot(new Machine(Data.rawData, true));
+            var robotOne = new Robot(Data.rawData);
             robotOne.Run();
-            Console.WriteLine("Part #1 - Total panels painted   : " + robotOne.TotalPanels.Count);
+            Console.WriteLine("Part #1 - Total panels painted : " + robotOne.TotalPanels.Count);
             Console.WriteLine("---------");
             
-            var robotTwo = new Robot(new Machine(Data.rawData, true));
+            var robotTwo = new Robot(Data.rawData);
             robotTwo.PaintedPanels.Add(new Point(0, 0));
             robotTwo.Run();
-
+            
             for (var y = robotTwo.TotalPanels.Min(x => x.Y); y <= robotTwo.TotalPanels.Max(x => x.Y); y++)
             {
                 for (var x = robotTwo.TotalPanels.Min(x => x.X); x <= robotTwo.TotalPanels.Max(x => x.X); x++)
                 {
                     Console.Write(robotTwo.PaintedPanels.Contains(new Point(x, y)) ? "#" : " ");
                 }
-
+            
                 Console.WriteLine();
             }
         }

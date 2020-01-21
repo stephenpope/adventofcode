@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace AoC13
 {
@@ -6,53 +7,50 @@ namespace AoC13
     {
         static void Main(string[] args)
         {
-            var arcade = new ArcadeCabinet(new Machine(Data.RawData, true));
-            arcade.Run(1);
+            var arcade = new ArcadeCabinet(Data.RawData);
+            arcade.Play(1);
             Console.WriteLine("Part I - Block count = " + arcade.BlockCount);
 
-            var arcadeTwo = new ArcadeCabinet(new Machine(Data.RawData, true));
-            arcadeTwo.Run(2);
+            var arcadeTwo = new ArcadeCabinet(Data.RawData);
+            arcadeTwo.Play(2);
             Console.WriteLine("Part II - Final score = " + arcadeTwo.Score);
         }
     }
 
     public class ArcadeCabinet
     {
-        private readonly Machine _machine;
-        private bool _isComplete;
-        private int _score;
-        private int _blockCount;
+        private readonly IntCodeMachine _machine;
 
-        public int Score => _score;
+        public int Score { get; private set; }
 
-        public int BlockCount => _blockCount;
-        
-        public ArcadeCabinet(Machine machine)
+        public int BlockCount { get; private set; }
+
+        public ArcadeCabinet(string program)
         {
-            _machine = machine;
-            _score = 0;
-            _blockCount = 0;
+            _machine = new IntCodeMachine(program);
+            Score = 0;
+            BlockCount = 0;
         }
 
-        public void Run(int mode)
+        public void Play(int mode)
         {
-            _machine.PatchMemory(0,mode);
+            _machine.PatchMemory(0, mode);
 
             var paddlePos = 0;
             var ballPos = 0;
 
-            while (!_isComplete)
+            while (!_machine.IsComplete)
             {
                 var joystick = paddlePos > ballPos ? -1 : paddlePos < ballPos ? 1 : 0;
 
                 var (x, y, tile) = StepMachine(joystick);
-                
+
                 if (x == -1 && y == 0)
                 {
-                    _score = tile;
+                    Score = tile;
                 }
 
-                if (_isComplete)
+                if (_machine.IsComplete)
                 {
                     break;
                 }
@@ -60,7 +58,7 @@ namespace AoC13
                 switch (tile)
                 {
                     case 2:
-                        _blockCount++;
+                        BlockCount++;
                         continue;
                     case 3:
                         paddlePos = x;
@@ -76,12 +74,38 @@ namespace AoC13
 
         private (int x, int y, int tile) StepMachine(int input)
         {
-            var stepOne = _machine.Execute(input); // Run until output1 (x)
-            var stepTwo = _machine.Execute(stepOne.outputValue); // Run until output2 (y)
-            var stepThree = _machine.Execute(stepTwo.outputValue); // Run until output3 (tile)
-            _isComplete = stepOne.isComplete || stepTwo.isComplete || stepThree.isComplete;
+            var writeCount = 0;
 
-            return ((int) stepOne.outputValue, (int) stepTwo.outputValue, (int) stepThree.outputValue);
+            while (true)
+            {
+                var returnCode = _machine.Execute();
+                
+                if (returnCode == ReturnCode.Complete)
+                {
+                    return default;
+                }
+                
+                if (returnCode == ReturnCode.WaitingForInput)
+                {
+                    _machine.InputQueue.Enqueue(input);
+                }
+
+                if (returnCode == ReturnCode.OutputWritten)
+                {
+                    writeCount++;
+                    
+                    if (writeCount % 3 == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            var x = _machine.OutputQueue.Dequeue();
+            var y = _machine.OutputQueue.Dequeue();
+            var tile = _machine.OutputQueue.Dequeue();
+
+            return ((int) x, (int) y, (int) tile);
         }
     }
 

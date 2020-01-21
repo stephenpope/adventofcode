@@ -4,7 +4,6 @@ using System.Linq;
 
 namespace AoC18
 {
-    [Serializable]
     public class AdvancedState : IEquatable<AdvancedState>
     {
         public readonly Point[] Position;
@@ -15,6 +14,13 @@ namespace AoC18
         {
             Position = new Point[4];
             Keys = new bool[26];
+        }
+        
+        public AdvancedState(Point[] position, bool[] keys, int active)
+        {
+            Position = position;
+            Keys = keys;
+            Active = active;
         }
 
         public override bool Equals(object? obj)

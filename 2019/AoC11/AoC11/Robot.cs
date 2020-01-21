@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -5,23 +6,21 @@ namespace AoC11
 {
     public class Robot
     {
-        private readonly Machine machine;
-        private bool _isComplete;
-
         private Point CurrentLocation = new Point(0, 0);
         private Direction CurrentDirection = Direction.Up;
 
         public readonly HashSet<Point> PaintedPanels = new HashSet<Point>();
         public readonly HashSet<Point> TotalPanels = new HashSet<Point>();
+        private readonly IntCodeMachine _machine;
 
-        public Robot(Machine brain)
+        public Robot(string program)
         {
-            machine = brain;
+            _machine = new IntCodeMachine(program);
         }
 
         public void Run()
         {
-            while (!_isComplete)
+            while (!_machine.IsComplete)
             {
                 StepRobot(StepMachine());
             }
@@ -29,7 +28,7 @@ namespace AoC11
 
         private void StepRobot((int paintColour, int rotationType) input)
         {
-            if (_isComplete)
+            if (_machine.IsComplete)
             {
                 return;
             }
@@ -72,45 +71,73 @@ namespace AoC11
         private void Move()
         {
             CurrentLocation = CurrentDirection switch
-            {
-                Direction.Up => Point.Add(CurrentLocation, new Size(new Point(0, -1))),
-                Direction.Left => Point.Add(CurrentLocation, new Size(new Point(-1, 0))),
-                Direction.Down => Point.Add(CurrentLocation, new Size(new Point(0, 1))),
-                Direction.Right => Point.Add(CurrentLocation, new Size(new Point(1, 0)))
-            };
+                              {
+                                  Direction.Up    => Point.Add(CurrentLocation, new Size(new Point(0, -1))),
+                                  Direction.Left  => Point.Add(CurrentLocation, new Size(new Point(-1, 0))),
+                                  Direction.Down  => Point.Add(CurrentLocation, new Size(new Point(0, 1))),
+                                  Direction.Right => Point.Add(CurrentLocation, new Size(new Point(1, 0))),
+                                  _ => throw new ArgumentOutOfRangeException()
+                              };
         }
 
         private void TurnLeft()
         {
             CurrentDirection = CurrentDirection switch
-            {
-                Direction.Up => Direction.Left,
-                Direction.Left => Direction.Down,
-                Direction.Down => Direction.Right,
-                Direction.Right => Direction.Up
-            };
+                               {
+                                   Direction.Up    => Direction.Left,
+                                   Direction.Left  => Direction.Down,
+                                   Direction.Down  => Direction.Right,
+                                   Direction.Right => Direction.Up,
+                                   _ => throw new ArgumentOutOfRangeException()
+                               };
         }
 
         private void TurnRight()
         {
             CurrentDirection = CurrentDirection switch
-            {
-                Direction.Up => Direction.Right,
-                Direction.Right => Direction.Down,
-                Direction.Down => Direction.Left,
-                Direction.Left => Direction.Up
-            };
+                               {
+                                   Direction.Up    => Direction.Right,
+                                   Direction.Right => Direction.Down,
+                                   Direction.Down  => Direction.Left,
+                                   Direction.Left  => Direction.Up,
+                                   _ => throw new ArgumentOutOfRangeException()
+                               };
         }
 
         private (int paintColour, int rotationType) StepMachine()
         {
             var panelColour = IsCurrentPanelPainted() ? 1 : 0; // Check current panel colour
+            var writeCount = 0;
+            
+            while (true)
+            {
+                var returnCode = _machine.Execute();
+                
+                if (returnCode == ReturnCode.Complete)
+                {
+                    return default;
+                }
 
-            var stepOne = machine.Execute(panelColour);            // Run until output1 (paint colour)
-            var stepTwo = machine.Execute(stepOne.outputValue);    // Run until output2 (direction)
-            _isComplete = stepOne.isComplete || stepTwo.isComplete;
+                if (returnCode == ReturnCode.WaitingForInput)
+                {
+                    _machine.InputQueue.Enqueue(panelColour);
+                }
+                
+                if (returnCode == ReturnCode.OutputWritten)
+                {
+                    writeCount++;
+                    
+                    if (writeCount % 2 == 0)
+                    {
+                        break;
+                    }
+                }
+            }
 
-            return ((int) stepOne.outputValue, (int) stepTwo.outputValue);
+            var paintColour = _machine.OutputQueue.Dequeue();
+            var rotation = _machine.OutputQueue.Dequeue();
+
+            return ((int) paintColour, (int) rotation);
         }
 
         private enum Direction

@@ -54,7 +54,7 @@ namespace AoC18
             for (var i = 0; i < _robots; i++)
             {
                 var start = new AdvancedState();
-                Array.Copy(_startPoint.Position, start.Position, _startPoint.Position.Length);
+                _startPoint.Position.AsSpan().CopyTo(start.Position);
                 start.Active = i;
                 
                 _distance[start] = 0;
@@ -73,10 +73,15 @@ namespace AoC18
                 foreach (var direction in _directionLookup)
                 {
                     // Make a copy
-                    var nextPosition = currentPosition.Clone();
-                    nextPosition.Position[currentPosition.Active] = currentPosition.Position[currentPosition.Active] + (Size) direction;
+                    var nextPosition = new Point[4];
+                    var nextKeys = new bool[26];
                     
-                    var nextTile = _mazeData[nextPosition.Position[currentPosition.Active]];
+                    currentPosition.Position.AsSpan().CopyTo(nextPosition);
+                    currentPosition.Keys.AsSpan().CopyTo(nextKeys);
+
+                    nextPosition[currentPosition.Active] = currentPosition.Position[currentPosition.Active] + (Size) direction;
+                    
+                    var nextTile = _mazeData[nextPosition[currentPosition.Active]];
 
                     if (nextTile == '#' || char.IsUpper(nextTile) && !currentPosition.Keys[nextTile - 'A'])
                     {
@@ -85,20 +90,18 @@ namespace AoC18
 
                     if (char.IsLower(nextTile))
                     {
-                        nextPosition.Keys[nextTile - 'a'] = true;
+                        nextKeys[nextTile - 'a'] = true;
                     }
 
                     for (var i = 0; i < _robots; i++)
                     {
-                        if (i != currentPosition.Active && nextPosition.Keys.SequenceEqual(currentPosition.Keys))
+                        if (i != currentPosition.Active && nextKeys.SequenceEqual(currentPosition.Keys))
                         {
                             continue;
                         }
                         
-                        // I hate this !
-                        var next = nextPosition.Clone();
-                        next.Active = i; // Just for this line to work !
-                        
+                        var next = new AdvancedState(nextPosition, nextKeys, i);
+
                         if (!_distance.ContainsKey(next))
                         {
                             _distance[next] = _distance[currentPosition] + 1;

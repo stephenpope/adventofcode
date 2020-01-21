@@ -9,14 +9,14 @@ namespace AoC15
     {
         static void Main(string[] args)
         {
-            var robot = new RepairRobot(new Machine(Data.RawData, true));
+            var robot = new RepairRobot(Data.RawData);
             robot.Run();
         }
     }
 
     public class RepairRobot
     {
-        private readonly Machine _machine;
+        private readonly IntCodeMachine _machine;
         
         private readonly Dictionary<Point, long> _mazeData;
         private Point _endLocation;
@@ -26,9 +26,9 @@ namespace AoC15
         private int offsetX;
         private int offsetY;
 
-        public RepairRobot(Machine machine)
+        public RepairRobot(string program)
         {
-            _machine = machine;
+            _machine = new IntCodeMachine(program);
             _mazeData = new Dictionary<Point, long>();
             _startLocation = new Point(0, 0);
             _mazeData.Add(_startLocation, 1);
@@ -97,7 +97,25 @@ namespace AoC15
 
         public long StepMachine(long input)
         {
-            return _machine.Execute(input).outputValue;
+            while (true)
+            {
+                var returnCode = _machine.Execute();
+                
+                if (returnCode == ReturnCode.Complete)
+                {
+                    return default;
+                }
+                
+                if (returnCode == ReturnCode.WaitingForInput)
+                {
+                    _machine.InputQueue.Enqueue(input);
+                }
+
+                if (returnCode == ReturnCode.OutputWritten)
+                {
+                    return _machine.OutputQueue.Dequeue();
+                }
+            }
         }
 
         public long BFS(Point startNode, Point targetNode, bool fullWalk = false)
