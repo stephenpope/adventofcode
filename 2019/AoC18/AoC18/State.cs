@@ -1,20 +1,18 @@
 using System;
+using System.Collections;
 using System.Drawing;
-using System.Linq;
 
 namespace AoC18
 {
     public class State : IEquatable<State>
     {
-        public Point Position;
-        public readonly bool[] Keys;
+        public readonly Point Position;
+        public readonly BitArray Keys;
 
-        public State(Point position, bool[] keys)
+        public State(Point position, ICloneable keys)
         {
             Position = position;
-            Keys = new bool[26];
-
-            Array.Copy(keys, Keys, keys.Length);
+            Keys = (BitArray)keys.Clone();
         }
 
         public override bool Equals(object? obj)
@@ -26,15 +24,18 @@ namespace AoC18
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-
-            return Position.Equals(other.Position) && Keys.SequenceEqual(other.Keys);
+            
+            return Position.Equals(other.Position) && Keys.BitEquals(other.Keys);
         }
 
         public override int GetHashCode()
         {
             var pointHash = HashCode.Combine(Position.X, Position.Y);
-            var keyHash = Keys.Aggregate(17, (current, element) => current * 31 + element.GetHashCode());
-            return HashCode.Combine(pointHash, keyHash);
+            
+            var hash = new int[1];
+            Keys.CopyTo(hash, 0);
+
+            return pointHash + hash[0];
         }
 
         public static bool operator ==(State left, State right)

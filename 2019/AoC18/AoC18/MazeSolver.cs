@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -9,13 +10,13 @@ namespace AoC18
     {
         private readonly Dictionary<Point, char> _mazeData = new Dictionary<Point, char>();
 
-        private readonly bool[] _keys = new bool[26];
+        private readonly BitArray _keys = new BitArray(26);
 
         private State _startPoint;
 
         private readonly Point[] _directionLookup = {new Point(0, -1), new Point(-1, 0), new Point(0, 1), new Point(1, 0)};
 
-        private readonly DefaultDictionary<State, int> _distance = new DefaultDictionary<State, int>();
+        private readonly Dictionary<State, int> _distance = new Dictionary<State, int>();
 
         public void LoadMaze(string input)
         {
@@ -30,7 +31,7 @@ namespace AoC18
 
                     if (currentChar == '@')
                     {
-                        _startPoint = new State(currentPoint, new bool[26]);
+                        _startPoint = new State(currentPoint, new BitArray(26));
                         currentChar = '.';
                     }
 
@@ -48,13 +49,13 @@ namespace AoC18
         {
             var queue = new Queue<State>();
             queue.Enqueue(_startPoint);
-            _distance[_startPoint] = 0;
+            _distance.Add(_startPoint,0);
 
             while (queue.Count > 0)
             {
                 var currentPosition = queue.Dequeue();
 
-                if (currentPosition.Keys.Count(x => x) == _keys.Count(y => y))
+                if (currentPosition.Keys.BitEquals(_keys))
                 {
                     return _distance[currentPosition];
                 }
@@ -74,9 +75,9 @@ namespace AoC18
                         nextPosition.Keys[nextTile - 'a'] = true;
                     }
 
-                    if (!_distance.ContainsKey(nextPosition))
+                    if (!_distance.TryGetValue(nextPosition, out _))
                     {
-                        _distance[nextPosition] = _distance[currentPosition] + 1;
+                        _distance.Add(nextPosition, _distance[currentPosition] + 1);
                         queue.Enqueue(nextPosition);
                     }
                 }

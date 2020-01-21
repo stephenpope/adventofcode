@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -9,13 +10,13 @@ namespace AoC18
     {
         private readonly Dictionary<Point, char> _mazeData = new Dictionary<Point, char>();
 
-        private readonly bool[] _keys = new bool[26];
+        private readonly BitArray _keys = new BitArray(26);
 
-        private readonly AdvancedState _startPoint = new AdvancedState();
+        private readonly Point[] _startPoint = new Point[4];
 
         private readonly Point[] _directionLookup = {new Point(0, -1), new Point(-1, 0), new Point(0, 1), new Point(1, 0)};
 
-        private readonly DefaultDictionary<AdvancedState, int> _distance = new DefaultDictionary<AdvancedState, int>();
+        private readonly Dictionary<AdvancedState, int> _distance = new Dictionary<AdvancedState, int>();
 
         private int _robots;
 
@@ -32,7 +33,7 @@ namespace AoC18
 
                     if (currentChar == '@')
                     {
-                        _startPoint.Position[_robots] = currentPoint;
+                        _startPoint[_robots] = currentPoint;
                         currentChar = '.';
                         _robots++;
                     }
@@ -53,11 +54,10 @@ namespace AoC18
 
             for (var i = 0; i < _robots; i++)
             {
-                var start = new AdvancedState();
-                _startPoint.Position.AsSpan().CopyTo(start.Position);
-                start.Active = i;
+                var start = new AdvancedState(_startPoint, new BitArray(26), i);
+                //Console.WriteLine(start);
                 
-                _distance[start] = 0;
+                _distance.Add(start, 0);
                 queue.Enqueue(start);
             }
 
@@ -65,7 +65,7 @@ namespace AoC18
             {
                 var currentPosition = queue.Dequeue();
 
-                if (currentPosition.Keys.Count(x => x) == _keys.Count(y => y))
+                if (currentPosition.Keys.BitEquals(_keys))
                 {
                     return _distance[currentPosition];
                 }
@@ -74,10 +74,10 @@ namespace AoC18
                 {
                     // Make a copy
                     var nextPosition = new Point[4];
-                    var nextKeys = new bool[26];
-                    
                     currentPosition.Position.AsSpan().CopyTo(nextPosition);
-                    currentPosition.Keys.AsSpan().CopyTo(nextKeys);
+                    
+                    var nextKeys = new BitArray(26);
+                    nextKeys = (BitArray) currentPosition.Keys.Clone();
 
                     nextPosition[currentPosition.Active] = currentPosition.Position[currentPosition.Active] + (Size) direction;
                     
@@ -95,16 +95,16 @@ namespace AoC18
 
                     for (var i = 0; i < _robots; i++)
                     {
-                        if (i != currentPosition.Active && nextKeys.SequenceEqual(currentPosition.Keys))
+                        if (i != currentPosition.Active && nextKeys.BitEquals(currentPosition.Keys))
                         {
                             continue;
                         }
-                        
-                        var next = new AdvancedState(nextPosition, nextKeys, i);
 
-                        if (!_distance.ContainsKey(next))
+                        var next = new AdvancedState(nextPosition, nextKeys ,i);
+
+                        if (!_distance.TryGetValue(next, out _))
                         {
-                            _distance[next] = _distance[currentPosition] + 1;
+                            _distance.Add(next, _distance[currentPosition] + 1);
                             queue.Enqueue(next);
                         }
                     }

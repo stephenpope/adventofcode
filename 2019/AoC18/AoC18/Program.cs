@@ -8,11 +8,10 @@ namespace AoC18
         static void Main(string[] args)
         {
             var solver = new MazeSolver();
-            solver.LoadMaze(Data.rawDataPartOne);
-            
             var timerOne = new Stopwatch();
-            Console.WriteLine("Please wait..");
             timerOne.Start();
+            solver.LoadMaze(Data.rawDataPartOne);
+            Console.WriteLine("Please wait..");
             var distancePartOne = solver.WalkMap();
             timerOne.Stop();
             
