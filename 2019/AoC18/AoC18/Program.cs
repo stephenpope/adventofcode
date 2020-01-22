@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Diagnostics;
 
 namespace AoC18
@@ -7,39 +8,64 @@ namespace AoC18
     {
         static void Main(string[] args)
         {
+            // var superSolver = new SuperMazeSolver();
+            // var loader = new Stopwatch();
+            // loader.Start();
+            // superSolver.LoadMaze(SuperMazeSolver.testOne);
+            // loader.Stop();
+            // Console.WriteLine($"{loader.Elapsed.TotalMilliseconds} ms");
+            
+            //superSolver.LoadMaze(Data.rawDataPartOne);
+            //superSolver.ExploreMaze();
+
             var solver = new MazeSolver();
+
             var timerOne = new Stopwatch();
             timerOne.Start();
+            //solver.LoadMaze(Data.testDataOne);
             solver.LoadMaze(Data.rawDataPartOne);
-            Console.WriteLine("Please wait..");
+            timerOne.Stop();
+            Console.WriteLine("Load: " + timerOne.Elapsed.TotalMilliseconds + " ms");
+            
+            timerOne.Reset();
+            timerOne.Start();
             var distancePartOne = solver.WalkMap();
             timerOne.Stop();
             
             Console.WriteLine("PART I - Shortest Distance : " + distancePartOne);
-            Console.WriteLine("Time: " + timerOne.Elapsed);
+            Console.WriteLine("Time: " + timerOne.Elapsed.TotalMilliseconds + " ms");
             Console.WriteLine();
-            
-            var advSolver = new AdvancedMazeSolver();
-            advSolver.LoadMaze(Data.rawDataPartTwo);
-            
-            var timerTwo = new Stopwatch();
-            Console.WriteLine("Please wait..");
-            timerTwo.Start();
-            var distancePartTwo = advSolver.WalkMap();
-            timerTwo.Stop();
-            
-            Console.WriteLine("PART II - Shortest Distance : " + distancePartTwo);
-            Console.WriteLine("Time: " + timerTwo.Elapsed);
+            //
+            // var advSolver = new AdvancedMazeSolver();
+            // advSolver.LoadMaze(Data.rawDataPartTwo);
+            //
+            // var timerTwo = new Stopwatch();
+            // Console.WriteLine("Please wait..");
+            // timerTwo.Start();
+            // var distancePartTwo = advSolver.WalkMap();
+            // timerTwo.Stop();
+            //
+            // Console.WriteLine("PART II - Shortest Distance : " + distancePartTwo);
+            // Console.WriteLine("Time: " + timerTwo.Elapsed);
         }
     }
 
     public static class Data
     {
+        // 8
         public static string testDataOne = @"
         #########
         #b.A.@.a#
         #########";
+        
+        public static string testDataOneA = @"
+        ########################
+        #@.....................#
+        ######################.#
+        #a.....................#
+        ########################";
 
+        // 86
         public static string testDataTwo = @"
         ########################
         #f.D.E.e.C.b.A.@.a.B.c.#
@@ -47,6 +73,7 @@ namespace AoC18
         #d.....................#
         ########################";
 
+        // 132
         public static string testDataThree = @"
         ########################
         #...............b.C.D.f#
@@ -54,7 +81,20 @@ namespace AoC18
         #.....@.a.B.c.d.A.e.F.g#
         ########################";
 
+        // 136
         public static string testDataFour = @"
+        #################
+        #i.G..c...e..H.p#
+        ########.########
+        #j.A..b...f..D.o#
+        ########@########
+        #k.E..a...g..B.n#
+        ########.########
+        #l.F..d...h..C.m#
+        #################";
+        
+        // 81
+        public static string testDataFive = @"
         ########################
         #@..............ac.GI.b#
         ###d#e#f################
@@ -62,7 +102,7 @@ namespace AoC18
         ###g#h#i################
         ########################";
 
-        public static string testDataFive = @"
+        public static string testDataSix = @"
         #######
         #a.#Cd#
         ##@#@##

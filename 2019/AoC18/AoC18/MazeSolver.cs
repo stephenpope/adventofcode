@@ -3,82 +3,125 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace AoC18
 {
     public class MazeSolver
     {
-        private readonly Dictionary<Point, char> _mazeData = new Dictionary<Point, char>();
-
-        private readonly BitArray _keys = new BitArray(26);
-
-        private State _startPoint;
-
         private readonly Point[] _directionLookup = {new Point(0, -1), new Point(-1, 0), new Point(0, 1), new Point(1, 0)};
+        private readonly Dictionary<long, int> _distance = new Dictionary<long, int>();
 
-        private readonly Dictionary<State, int> _distance = new Dictionary<State, int>();
+        private long _keys;
+        private long _startPoint;
+
+        private int _height;
+        private int _width;
+
+        private char[] _mazeData;
+        
+        public static long SetNode(int x, int y, long keys)
+        {
+            return x | (y << 8) | (keys << 16);
+        }
+        
+        public static long SetKey(long keys, int position)
+        {
+            return keys | 1 << position;
+        }
+        
+        public static long GetKeys(long node)
+        {
+            return (node >> 16) & 67108863;
+        }
+        
+        public static (int x, int y) GetPosition(long node)
+        {
+            return ((int) (node & 255), (int) ((node >> 8) & 255));
+        }
+        
+        public static bool IsKeySet(long b, int pos)
+        {
+            return (b & (1 << pos)) != 0;
+        }
 
         public void LoadMaze(string input)
         {
             var data = input.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
+            _width = data[0].Trim().Length;
+            _height = data.Length;
+            _mazeData = new char[_width * _height];
+
             foreach (var line in data.Select((rowData, Y) => new {Y, rowData}))
             {
                 foreach (var rowItem in line.rowData.Trim().Select((Character, X) => new {X, Character}))
                 {
-                    var currentPoint = new Point(rowItem.X, line.Y);
+                    var index = rowItem.X + line.Y * _width;
                     var currentChar = rowItem.Character;
 
-                    if (currentChar == '@')
+                    if (rowItem.Character == '@')
                     {
-                        _startPoint = new State(currentPoint, new BitArray(26));
+                        _startPoint = SetNode(rowItem.X, line.Y, 0);
                         currentChar = '.';
                     }
 
                     if (char.IsLower(currentChar))
                     {
-                        _keys[currentChar - 'a'] = true;
+                        _keys = SetKey(_keys, currentChar - 'a');
                     }
 
-                    _mazeData.Add(currentPoint, currentChar);
+                    _mazeData[index] = currentChar;
                 }
             }
         }
 
         public int WalkMap()
         {
-            var queue = new Queue<State>();
-            queue.Enqueue(_startPoint);
-            _distance.Add(_startPoint,0);
+            var queueCount = 0;
+            var queueIndex = 0;
 
-            while (queue.Count > 0)
+            var queue = new long[2000000];
+            queue[queueCount++] = _startPoint;
+
+            _distance[_startPoint] = 0;
+
+            while (queueCount > queueIndex)
             {
-                var currentPosition = queue.Dequeue();
+                var current = queue[queueIndex++];
 
-                if (currentPosition.Keys.BitEquals(_keys))
+                if (GetKeys(current) == _keys)
                 {
-                    return _distance[currentPosition];
+                    return _distance[current];
                 }
 
                 foreach (var direction in _directionLookup)
                 {
-                    var nextPosition = new State(currentPosition.Position + (Size) direction, currentPosition.Keys);
-                    var nextTile = _mazeData[nextPosition.Position];
+                    var (x, y) = GetPosition(current);
 
-                    if (nextTile == '#' || char.IsUpper(nextTile) && !currentPosition.Keys[nextTile - 'A'])
+                    x += direction.X;
+                    y += direction.Y;
+                    
+                    var currentKeys = GetKeys(current);
+
+                    var nextTile = _mazeData[x + y * _width];
+
+                    if (nextTile == '#' || char.IsUpper(nextTile) && !IsKeySet(currentKeys, nextTile - 'A'))
                     {
                         continue;
                     }
 
                     if (char.IsLower(nextTile))
                     {
-                        nextPosition.Keys[nextTile - 'a'] = true;
+                        currentKeys = SetKey(currentKeys, nextTile - 'a');
                     }
 
-                    if (!_distance.TryGetValue(nextPosition, out _))
+                    var nextPosition = SetNode(x, y, currentKeys);
+
+                    if (!_distance.ContainsKey(nextPosition))
                     {
-                        _distance.Add(nextPosition, _distance[currentPosition] + 1);
-                        queue.Enqueue(nextPosition);
+                        _distance[nextPosition] = _distance[current] + 1;
+                        queue[queueCount++] = nextPosition;
                     }
                 }
             }
