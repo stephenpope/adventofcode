@@ -9,8 +9,8 @@ namespace AoC18
 {
     public class MazeSolver
     {
-        private readonly Point[] _directionLookup = {new Point(0, -1), new Point(-1, 0), new Point(0, 1), new Point(1, 0)};
-        private readonly Dictionary<long, int> _distance = new Dictionary<long, int>();
+        private readonly (int x, int y)[] _directionLookup = {(0, -1), (-1, 0), (0, 1), (1, 0)};
+        private readonly Dictionary<long, int> _distance = new Dictionary<long, int>(1923922);
 
         private long _keys;
         private long _startPoint;
@@ -19,10 +19,15 @@ namespace AoC18
         private int _width;
 
         private char[] _mazeData;
-        
+
         public static long SetNode(int x, int y, long keys)
         {
             return x | (y << 8) | (keys << 16);
+        }
+
+        public static long GetKeys(long node)
+        {
+            return (node >> 16) & 67108863;
         }
         
         public static long SetKey(long keys, int position)
@@ -30,19 +35,14 @@ namespace AoC18
             return keys | 1 << position;
         }
         
-        public static long GetKeys(long node)
+        public static (int x, int y, long keys) GetNode(long node)
         {
-            return (node >> 16) & 67108863;
+            return ((int) (node & 255), (int) ((node >> 8) & 255), (node >> 16) & 67108863);
         }
         
-        public static (int x, int y) GetPosition(long node)
+        public static bool IsKeySet(long keys, int pos)
         {
-            return ((int) (node & 255), (int) ((node >> 8) & 255));
-        }
-        
-        public static bool IsKeySet(long b, int pos)
-        {
-            return (b & (1 << pos)) != 0;
+            return (keys & (1 << pos)) != 0;
         }
 
         public void LoadMaze(string input)
@@ -57,7 +57,6 @@ namespace AoC18
             {
                 foreach (var rowItem in line.rowData.Trim().Select((Character, X) => new {X, Character}))
                 {
-                    var index = rowItem.X + line.Y * _width;
                     var currentChar = rowItem.Character;
 
                     if (rowItem.Character == '@')
@@ -65,13 +64,13 @@ namespace AoC18
                         _startPoint = SetNode(rowItem.X, line.Y, 0);
                         currentChar = '.';
                     }
-
-                    if (char.IsLower(currentChar))
+                    
+                    if(currentChar <= 122 && currentChar >= 97)
                     {
                         _keys = SetKey(_keys, currentChar - 'a');
                     }
 
-                    _mazeData[index] = currentChar;
+                    _mazeData[rowItem.X + line.Y * _width] = currentChar;
                 }
             }
         }
@@ -97,12 +96,10 @@ namespace AoC18
 
                 foreach (var direction in _directionLookup)
                 {
-                    var (x, y) = GetPosition(current);
+                    var (x, y, currentKeys) = GetNode(current);
 
-                    x += direction.X;
-                    y += direction.Y;
-                    
-                    var currentKeys = GetKeys(current);
+                    x += direction.x;
+                    y += direction.y;
 
                     var nextTile = _mazeData[x + y * _width];
 
@@ -124,9 +121,50 @@ namespace AoC18
                         queue[queueCount++] = nextPosition;
                     }
                 }
+                
+                //DrawMap(current);
             }
 
             return -1;
+        }
+        
+        public void DrawMap(long current)
+        {
+            for (int y = 0; y < _height; y++)
+            {
+                for (int x = 0; x < _width; x++)
+                {
+                    var tile = _mazeData[x + y * _width];
+                    var currentPos = GetNode(current);
+
+                    if (currentPos.x == x && currentPos.y == y)
+                    {
+                        tile = '@';
+                    }
+
+                    if (char.IsLower(tile))
+                    {
+                        if (IsKeySet(currentPos.keys, tile - 'a'))
+                        {
+                            tile = 'x';
+                        }
+                    }
+
+                    if (char.IsUpper(tile))
+                    {
+                        if (IsKeySet(currentPos.keys, tile - 'A'))
+                        {
+                            tile = 'o';
+                        }
+                    }
+
+                    Console.Write(tile);
+                }
+
+                Console.WriteLine();
+            }
+
+            Console.ReadLine();
         }
     }
 }

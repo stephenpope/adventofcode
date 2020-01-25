@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Diagnostics;
 
 namespace AoC18
@@ -14,26 +13,70 @@ namespace AoC18
             // superSolver.LoadMaze(SuperMazeSolver.testOne);
             // loader.Stop();
             // Console.WriteLine($"{loader.Elapsed.TotalMilliseconds} ms");
-            
             //superSolver.LoadMaze(Data.rawDataPartOne);
             //superSolver.ExploreMaze();
 
-            var solver = new MazeSolver();
+            //Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
 
+            // if (IsAvailable(arr, 3, 3, newKey))
+            // {
+            //     Console.WriteLine("Not set!");
+            // }
+            // else
+            // {
+            //     Console.WriteLine("Already there!");
+            // }
+            
+            // var height = 5;
+            // var width = 5;
+            // var robots = 4;
+            //
+            // int To1D( int x, int y, int z ) 
+            // {
+            //     return z * width * height + y * width + x;
+            // }
+            //
+            // (int x, int y, int z) To3D( int idx ) {
+            //     var z = idx / (width * height);
+            //     idx -= z * width * height;
+            //     var y = idx / width;
+            //     var x = idx % width;
+            //     return (x, y, z);
+            // }
+            //
+            // for (int y = 0; y < height; y++)
+            // {
+            //     for (int x = 0; x < width; x++)
+            //     {
+            //         for (int r = 0; r < robots; r++)
+            //         {
+            //             Console.WriteLine($"{x},{y},{r} - {To1D(x,y,r)}");
+            //         }
+            //     }
+            // }
+            //
+            // Console.WriteLine(width*height*robots);
+            //  
+            // Console.WriteLine($"{To3D(76)}");
+
+            //Console.WriteLine(To1D(5,5,4));
+            
+            var solver = new MazeSolver();
             var timerOne = new Stopwatch();
             timerOne.Start();
             //solver.LoadMaze(Data.testDataOne);
+            //solver.LoadMaze(Data.testDataTwo);
+            //solver.LoadMaze(Data.testDataThree);
+            //solver.LoadMaze(Data.testDataFour);
             solver.LoadMaze(Data.rawDataPartOne);
             timerOne.Stop();
-            Console.WriteLine("Load: " + timerOne.Elapsed.TotalMilliseconds + " ms");
-            
+            Console.WriteLine("Load: " + timerOne.Elapsed);
             timerOne.Reset();
             timerOne.Start();
             var distancePartOne = solver.WalkMap();
             timerOne.Stop();
-            
-            Console.WriteLine("PART I - Shortest Distance : " + distancePartOne);
-            Console.WriteLine("Time: " + timerOne.Elapsed.TotalMilliseconds + " ms");
+            Console.WriteLine("PART I - Shortest Distance : " + distancePartOne); //00:00:00.7186916
+            Console.WriteLine("Time: " + timerOne.Elapsed);
             Console.WriteLine();
             //
             // var advSolver = new AdvancedMazeSolver();
@@ -45,7 +88,7 @@ namespace AoC18
             // var distancePartTwo = advSolver.WalkMap();
             // timerTwo.Stop();
             //
-            // Console.WriteLine("PART II - Shortest Distance : " + distancePartTwo);
+            // Console.WriteLine("PART II - Shortest Distance : " + distancePartTwo); //00:00:25.3705075
             // Console.WriteLine("Time: " + timerTwo.Elapsed);
         }
     }
@@ -73,7 +116,7 @@ namespace AoC18
         #d.....................#
         ########################";
 
-        // 132
+        // 132 - b, a, c, d, f, e, g
         public static string testDataThree = @"
         ########################
         #...............b.C.D.f#
@@ -81,7 +124,7 @@ namespace AoC18
         #.....@.a.B.c.d.A.e.F.g#
         ########################";
 
-        // 136
+        // 136 - a, f, b, j, g, n, h, d, l, o, e, p, c, i, k, m
         public static string testDataFour = @"
         #################
         #i.G..c...e..H.p#

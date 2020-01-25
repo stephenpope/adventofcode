@@ -10,34 +10,38 @@ namespace Benchmarking
 {
     public class Program
     {
-        private Point[] one;
-        private Point[] two;
+        private int one;
 
         [GlobalSetup]
         public void Setup()
         {
-            one = new Point[4];
-            one[0] = new Point(1,1);
-            
-            two = new Point[4];
+            one = SetPoint(1, 1);
         }
 
-        // [Benchmark]
-        // public bool CompareFor() => one.BitEquals(two);
-        //
-        // [Benchmark]
-        // public bool CompareLinq() => three.SequenceEqual(four);
+        public static (int x, int y) GetPointTuple(int node)
+        {
+            return (node & 255,(node >> 8) & 255);
+        }
+
+        public static int[] GetPointArray(int node)
+        {
+            return new[] {node & 255, (node >> 8) & 255};
+        }
+
+        public static int SetPoint(int x, int y)
+        {
+            return x | (y << 8);
+        }
 
         [Benchmark]
-        public void Copy() => Array.Copy(one, two, one.Length);
+        public (int x, int y) GetTuple() => GetPointTuple(one);
 
         [Benchmark]
-        public void Clone() => one.AsSpan().CopyTo(two);
+        public int[] GetArray() => GetPointArray(one);
 
         static void Main(string[] args)
-        { 
+        {
             var summary = BenchmarkRunner.Run<Program>();
         }
     }
-    
 }
