@@ -1,41 +1,63 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 
 namespace AoC18
 {
     public class AdvancedMazeSolver
     {
-        //private readonly Dictionary<Point, char> _mazeData = new Dictionary<Point, char>();
+        private readonly StateDictionary _distance = new StateDictionary(6000000);
 
-        //private readonly BitArray _keys = new BitArray(26);
+        private readonly (int x, int y)[] _directionLookup = {(0, -1), (-1, 0), (0, 1), (1, 0)};
+        
+        private static readonly ulong[] _mask = {0xFFFFFFFFFFFF0000, 0xFFFFFFFF0000FFFF, 0xFFFF0000FFFFFFFF, 0x0000FFFFFFFFFFFF };
 
-        // private readonly Point[] _startPoint = new Point[4];
-        //
-        // private readonly Point[] _directionLookup = {new Point(0, -1), new Point(-1, 0), new Point(0, 1), new Point(1, 0)};
-        //
-        // private readonly Dictionary<AdvancedState, int> _distance = new Dictionary<AdvancedState, int>();
+        private ulong _startPoint;
+
         private long _keys;
-        
+
         private int _robots;
-        
+
         private int _height;
-        
+
         private int _width;
 
         private char[] _mazeData;
+
+        public static uint SetPosition(uint x, uint y)
+        {
+            return x | (y << 8);
+        }
+
+        public static ulong LoadPosition(ulong source, uint position, int offset)
+        {
+            source &= _mask[offset];
+            return source | (ulong)position << (offset * 16);
+        }
         
+        public uint UnloadPosition(ulong source, int offset)
+        {
+            return (uint) (source >> (16 * offset) & 65535);
+        }
+
+        public static (int x, int y) GetPosition(uint node)
+        {
+            return ((int x, int y)) (node & 255, (node >> 8) & 255);
+        }
+
         public static long SetKey(long keys, int position)
         {
             return keys | 1 << position;
         }
 
+        public static bool IsKeySet(long keys, int pos)
+        {
+            return (keys & (1 << pos)) != 0;
+        }
+
         public void LoadMaze(string input)
         {
             var data = input.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-            
+
             _width = data[0].Trim().Length;
             _height = data.Length;
             _mazeData = new char[_width * _height];
@@ -44,91 +66,88 @@ namespace AoC18
             {
                 foreach (var rowItem in line.rowData.Trim().Select((Character, X) => new {X, Character}))
                 {
-                    var index = rowItem.X + line.Y * _width;
-                    var currentPoint = new Point(rowItem.X, line.Y);
                     var currentChar = rowItem.Character;
 
-                    if (currentChar == '@')
+                    if (rowItem.Character == '@')
                     {
-                        //TODO!!!_startPoint[_robots] = currentPoint;
+                        _startPoint = LoadPosition(_startPoint, SetPosition((uint)rowItem.X, (uint)line.Y), _robots);
                         currentChar = '.';
                         _robots++;
                     }
 
-                    if (char.IsLower(currentChar))
+                    if (currentChar <= 122 && currentChar >= 97)
                     {
                         _keys = SetKey(_keys, currentChar - 'a');
                     }
 
-                    _mazeData[index] = currentChar;
+                    _mazeData[rowItem.X + line.Y * _width] = currentChar;
                 }
             }
         }
 
-        // public int WalkMap()
-        // {
-        //     var queue = new Queue<AdvancedState>();
-        //
-        //     for (var i = 0; i < _robots; i++)
-        //     {
-        //         var start = new AdvancedState(_startPoint, new BitArray(26), i);
-        //         //Console.WriteLine(start);
-        //         
-        //         _distance.Add(start, 0);
-        //         queue.Enqueue(start);
-        //     }
-        //
-        //     while (queue.Count > 0)
-        //     {
-        //         var currentPosition = queue.Dequeue();
-        //
-        //         if (currentPosition.Keys.BitEquals(_keys))
-        //         {
-        //             return _distance[currentPosition];
-        //         }
-        //
-        //         foreach (var direction in _directionLookup)
-        //         {
-        //             // Make a copy
-        //             var nextPosition = new Point[4];
-        //             currentPosition.Position.AsSpan().CopyTo(nextPosition);
-        //             
-        //             var nextKeys = new BitArray(26);
-        //             nextKeys = (BitArray) currentPosition.Keys.Clone();
-        //
-        //             nextPosition[currentPosition.Active] = currentPosition.Position[currentPosition.Active] + (Size) direction;
-        //             
-        //             var nextTile = _mazeData[nextPosition[currentPosition.Active]];
-        //
-        //             if (nextTile == '#' || char.IsUpper(nextTile) && !currentPosition.Keys[nextTile - 'A'])
-        //             {
-        //                 continue;
-        //             }
-        //
-        //             if (char.IsLower(nextTile))
-        //             {
-        //                 nextKeys[nextTile - 'a'] = true;
-        //             }
-        //
-        //             for (var i = 0; i < _robots; i++)
-        //             {
-        //                 if (i != currentPosition.Active && nextKeys.BitEquals(currentPosition.Keys))
-        //                 {
-        //                     continue;
-        //                 }
-        //
-        //                 var next = new AdvancedState(nextPosition, nextKeys ,i);
-        //
-        //                 if (!_distance.TryGetValue(next, out _))
-        //                 {
-        //                     _distance.Add(next, _distance[currentPosition] + 1);
-        //                     queue.Enqueue(next);
-        //                 }
-        //             }
-        //         }
-        //     }
-        //
-        //     return -1;
-        // }
+        public int WalkMap()
+        {
+            var queueCount = 0;
+            var queueIndex = 0;
+
+            var queue = new State[8000000];
+        
+            for (var i = 0; i < _robots; i++)
+            {
+                var start = new State { Position = _startPoint, Keys = 0, Active = i };
+                _distance[start] = 0;
+                queue[queueCount++] = start;
+            }
+        
+            while (queueCount > queueIndex)
+            {
+                var current = queue[queueIndex++];
+                
+                if (current.Keys == _keys)
+                {
+                    return _distance[current];
+                }
+                
+                foreach (var direction in _directionLookup)
+                {
+                    var (x, y) = GetPosition(UnloadPosition(current.Position, current.Active));
+                    
+                    x += direction.x;
+                    y += direction.y;
+
+                    var nextPosition = LoadPosition(current.Position, SetPosition((uint)x, (uint)y), current.Active);
+                    var nextKeys = current.Keys;
+                    var nextTile = _mazeData[x + y * _width];
+                
+                    if (nextTile == '#' || nextTile <= 90 && nextTile >= 65 && !IsKeySet(nextKeys, nextTile - 'A'))
+                    {
+                        continue;
+                    }
+                
+                    if (nextTile <= 122 && nextTile >= 97)
+                    {
+                        nextKeys = SetKey(nextKeys, nextTile - 'a');
+                    }
+                
+                    for (var i = 0; i < _robots; i++)
+                    {
+                        if (i != current.Active && nextKeys == current.Keys)
+                        {
+                            continue;
+                        }
+                        
+                        var next = new State { Position = nextPosition, Keys = nextKeys, Active = i};
+                
+                        if (!_distance.ContainsKey(next))
+                        {
+                            _distance[next] = _distance[current] + 1;
+                            queue[queueCount++] = next;
+                        }
+                    }
+                }
+            }
+        
+            return -1;
+        }
     }
 }

@@ -10,7 +10,6 @@ namespace AoC18
     public class MazeSolver
     {
         private readonly (int x, int y)[] _directionLookup = {(0, -1), (-1, 0), (0, 1), (1, 0)};
-        private readonly Dictionary<long, int> _distance = new Dictionary<long, int>(1923922);
 
         private long _keys;
         private long _startPoint;
@@ -83,7 +82,7 @@ namespace AoC18
             var queue = new long[2000000];
             queue[queueCount++] = _startPoint;
 
-            _distance[_startPoint] = 0;
+            var distance = new MiniDictionary(1923922) { [_startPoint] = 0 };
 
             while (queueCount > queueIndex)
             {
@@ -91,7 +90,7 @@ namespace AoC18
 
                 if (GetKeys(current) == _keys)
                 {
-                    return _distance[current];
+                    return distance[current];
                 }
 
                 foreach (var direction in _directionLookup)
@@ -103,21 +102,21 @@ namespace AoC18
 
                     var nextTile = _mazeData[x + y * _width];
 
-                    if (nextTile == '#' || char.IsUpper(nextTile) && !IsKeySet(currentKeys, nextTile - 'A'))
+                    if (nextTile == '#' || nextTile <= 90 && nextTile >= 65 && !IsKeySet(currentKeys, nextTile - 'A'))
                     {
                         continue;
                     }
 
-                    if (char.IsLower(nextTile))
+                    if (nextTile <= 122 && nextTile >= 97)
                     {
                         currentKeys = SetKey(currentKeys, nextTile - 'a');
                     }
 
                     var nextPosition = SetNode(x, y, currentKeys);
 
-                    if (!_distance.ContainsKey(nextPosition))
+                    if (!distance.ContainsKey(nextPosition))
                     {
-                        _distance[nextPosition] = _distance[current] + 1;
+                        distance[nextPosition] = distance[current] + 1;
                         queue[queueCount++] = nextPosition;
                     }
                 }

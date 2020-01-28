@@ -7,67 +7,9 @@ namespace AoC18
     {
         static void Main(string[] args)
         {
-            // var superSolver = new SuperMazeSolver();
-            // var loader = new Stopwatch();
-            // loader.Start();
-            // superSolver.LoadMaze(SuperMazeSolver.testOne);
-            // loader.Stop();
-            // Console.WriteLine($"{loader.Elapsed.TotalMilliseconds} ms");
-            //superSolver.LoadMaze(Data.rawDataPartOne);
-            //superSolver.ExploreMaze();
-
-            //Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
-
-            // if (IsAvailable(arr, 3, 3, newKey))
-            // {
-            //     Console.WriteLine("Not set!");
-            // }
-            // else
-            // {
-            //     Console.WriteLine("Already there!");
-            // }
-            
-            // var height = 5;
-            // var width = 5;
-            // var robots = 4;
-            //
-            // int To1D( int x, int y, int z ) 
-            // {
-            //     return z * width * height + y * width + x;
-            // }
-            //
-            // (int x, int y, int z) To3D( int idx ) {
-            //     var z = idx / (width * height);
-            //     idx -= z * width * height;
-            //     var y = idx / width;
-            //     var x = idx % width;
-            //     return (x, y, z);
-            // }
-            //
-            // for (int y = 0; y < height; y++)
-            // {
-            //     for (int x = 0; x < width; x++)
-            //     {
-            //         for (int r = 0; r < robots; r++)
-            //         {
-            //             Console.WriteLine($"{x},{y},{r} - {To1D(x,y,r)}");
-            //         }
-            //     }
-            // }
-            //
-            // Console.WriteLine(width*height*robots);
-            //  
-            // Console.WriteLine($"{To3D(76)}");
-
-            //Console.WriteLine(To1D(5,5,4));
-            
             var solver = new MazeSolver();
             var timerOne = new Stopwatch();
             timerOne.Start();
-            //solver.LoadMaze(Data.testDataOne);
-            //solver.LoadMaze(Data.testDataTwo);
-            //solver.LoadMaze(Data.testDataThree);
-            //solver.LoadMaze(Data.testDataFour);
             solver.LoadMaze(Data.rawDataPartOne);
             timerOne.Stop();
             Console.WriteLine("Load: " + timerOne.Elapsed);
@@ -78,18 +20,17 @@ namespace AoC18
             Console.WriteLine("PART I - Shortest Distance : " + distancePartOne); //00:00:00.7186916
             Console.WriteLine("Time: " + timerOne.Elapsed);
             Console.WriteLine();
-            //
-            // var advSolver = new AdvancedMazeSolver();
-            // advSolver.LoadMaze(Data.rawDataPartTwo);
-            //
-            // var timerTwo = new Stopwatch();
-            // Console.WriteLine("Please wait..");
-            // timerTwo.Start();
-            // var distancePartTwo = advSolver.WalkMap();
-            // timerTwo.Stop();
-            //
-            // Console.WriteLine("PART II - Shortest Distance : " + distancePartTwo); //00:00:25.3705075
-            // Console.WriteLine("Time: " + timerTwo.Elapsed);
+
+            var advSolver = new AdvancedMazeSolver();
+            advSolver.LoadMaze(Data.rawDataPartTwo);
+            var timerTwo = new Stopwatch();
+            Console.WriteLine("Please wait..");
+            timerTwo.Start();
+            var distancePartTwo = advSolver.WalkMap();
+            timerTwo.Stop();
+
+            Console.WriteLine("PART II - Shortest Distance : " + distancePartTwo); //00:00:25.3705075
+            Console.WriteLine("Time: " + timerTwo.Elapsed);
         }
     }
 
@@ -100,7 +41,7 @@ namespace AoC18
         #########
         #b.A.@.a#
         #########";
-        
+
         public static string testDataOneA = @"
         ########################
         #@.....................#
@@ -135,7 +76,7 @@ namespace AoC18
         ########.########
         #l.F..d...h..C.m#
         #################";
-        
+
         // 81
         public static string testDataFive = @"
         ########################
@@ -236,8 +177,8 @@ namespace AoC18
 #.###.#.#.#####Q#.###.#.#.###.#.###.#.#.#####.###.#.#.###.#####.###.#####.###Z###
 #...#...#.......#.....#....h..#.......#.#.......#...#...........#.......#.......#
 #################################################################################";
-        
-                public static string rawDataPartTwo = @"
+
+        public static string rawDataPartTwo = @"
 #################################################################################
 #.#.....#.........#...S.#...............#...............#.......#.....#.........#
 #.#.#.###.#.#####.#.###.#.###########.#.#.###.###########.###.#E#.###.#.#.#######
