@@ -226,46 +226,52 @@ namespace AoC1
         {
             // Why 2020-x ? Locate the other half of the equation quickly (one loop) by eliminating invalid values - in theory there are only 2 values that match.
             // Why Aggregate ? Its an accumulator .. (1 * value1) * value2) => ((1 * 138) * 1882)- Again assuming there are only 2 valid values.
+            // Why warmup ? Get more accurate results for time measurements
+            
+            var warmUp = InputValues.Where(x => InputValues.Contains(2020 - x)).Aggregate(1, (a, b) => a * b);
 
             var sw = Stopwatch.StartNew();
 
-            Console.Write("Part One [LINQ] - Result: " + InputValues
+            var partOneLinqResult = InputValues
                 .Where(x => InputValues.Contains(2020 - x))
-                .Aggregate(1, (a, b) => a * b));
-
+                .Aggregate(1, (a, b) => a * b);
+            
             sw.Stop();
+
+            Console.Write("Part One [LINQ] - Result: " + partOneLinqResult);
             Console.WriteLine($" - [{sw.ElapsedMilliseconds} ms => {sw.ElapsedTicks.ToString("0,0",CultureInfo.InvariantCulture)} ticks]");
 
             // Why FirstOrDefault ? Another .Where() will return an array - this assumes only 1 correct answer so we return just that!
 
             sw.Restart();
 
-            Console.Write("Part Two [LINQ] - Result: " + InputValues
+            var partTwoLinqResult = InputValues
                 .Where(o => InputValues.FirstOrDefault(c => InputValues.Contains(2020 - o - c)) > 0)
-                .Aggregate(1, (a, b) => a * b));
-
+                .Aggregate(1, (a, b) => a * b);
+            
             sw.Stop();
+            
+            Console.Write("Part Two [LINQ] - Result: " + partTwoLinqResult);
             Console.WriteLine($" - [{sw.ElapsedMilliseconds} ms => {sw.ElapsedTicks.ToString("0,0",CultureInfo.InvariantCulture)} ticks]");
-
-            // EXTREME OPTIMIZATION ! Knowing we have only 2 results we can do stupid things in the name of speed ..
-
-            var result = new int[2];
-            var accumulator = 0;
 
             sw.Restart();
 
-            foreach (var value in InputValues)
+            int DoPartOne()
             {
-                foreach (var subValue in InputValues)
+                foreach (var value in InputValues)
                 {
-                    if (2020 - value != subValue) continue;
-
-                    result[accumulator] = subValue;
-                    accumulator += 1;
+                    var test = 2020 - value;
+                    
+                    if ( test > 0 && InputValues.Contains(test))
+                    {
+                        return test * value;
+                    }
                 }
+
+                return 0;
             }
             
-            var partOneResult = result[0] * result[1];
+            var partOneResult = DoPartOne();
 
             sw.Stop();
 
@@ -276,17 +282,17 @@ namespace AoC1
 
             // Trick using C#7 local functions .. exits from nested foreach by using return.
 
-            int DoWork()
+            int DoPartTwo()
             {
-                foreach (var value in SampleInputValues)
+                foreach (var value in InputValues)
                 {
-                    foreach (var subValue in SampleInputValues)
+                    foreach (var subValue in InputValues)
                     {
-                        foreach (var subSubValue in SampleInputValues)
+                        var test = 2020 - value - subValue;
+                        
+                        if ( test > 0 && InputValues.Contains(test))
                         {
-                            if (2020 - value - subValue - subSubValue != 0) continue;
-
-                            return value * subValue * subSubValue;
+                            return test * value * subValue;
                         }
                     }
                 }
@@ -294,7 +300,7 @@ namespace AoC1
                 return 0;
             };
 
-            var partTwoResult = DoWork();
+            var partTwoResult = DoPartTwo();
 
             sw.Stop();
 
