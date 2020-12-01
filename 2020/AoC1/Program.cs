@@ -6,18 +6,63 @@ using System.Linq;
 
 namespace AoC1
 {
+            public static class AoC1
+        {
+            public static int PartOneLinq(HashSet<int> input)
+            {
+                // Why 2020-x ? Locate the other half of the equation quickly (one loop) by eliminating invalid values - in theory there are only 2 values that match.
+                // Why Aggregate ? Its an accumulator .. (1 * value1) * value2) => ((1 * 138) * 1882)- Again assuming there are only 2 valid values.
+                
+                return input
+                    .Where(x => input.Contains(2020 - x))
+                    .Aggregate(1, (a, b) => a * b);
+            }
+
+            public static int PartTwoLinq(HashSet<int> input)
+            {
+                // Why FirstOrDefault ? Another .Where() will return an array - this assumes only 1 correct answer so we return just that!
+                
+                return input
+                    .Where(o => input.FirstOrDefault(c => input.Contains(2020 - o - c)) > 0)
+                    .Aggregate(1, (a, b) => a * b);
+            }
+
+            public static int PartOneRaw(HashSet<int> input)
+            {
+                foreach (var value in input)
+                {
+                    var test = 2020 - value;
+                    
+                    if ( test > 0 && input.Contains(test))
+                    {
+                        return test * value;
+                    }
+                }
+
+                return 0;
+            }
+
+            public static int PartTwoRaw(HashSet<int> input)
+            {
+                foreach (var value in input)
+                {
+                    foreach (var subValue in input)
+                    {
+                        var test = 2020 - value - subValue;
+                        
+                        if ( test > 0 && input.Contains(test))
+                        {
+                            return test * value * subValue;
+                        }
+                    }
+                }
+
+                return 0;
+            }
+        }
+    
     class Program
     {
-        private static readonly int[] SampleInputValues =
-        {
-            1721,
-            979,
-            366,
-            299,
-            675,
-            1456
-        };
-
         private static readonly HashSet<int> InputValues = new()
         {
             1695,
@@ -224,88 +269,11 @@ namespace AoC1
 
         static void Main(string[] args)
         {
-            // Why 2020-x ? Locate the other half of the equation quickly (one loop) by eliminating invalid values - in theory there are only 2 values that match.
-            // Why Aggregate ? Its an accumulator .. (1 * value1) * value2) => ((1 * 138) * 1882)- Again assuming there are only 2 valid values.
-            // Why warmup ? Get more accurate results for time measurements
+            Console.WriteLine("Part One [LINQ] => " + AoC1.PartOneLinq(InputValues));
+            Console.WriteLine("Part One [RAW ] => " + AoC1.PartOneRaw(InputValues));
             
-            var warmUp = InputValues.Where(x => InputValues.Contains(2020 - x)).Aggregate(1, (a, b) => a * b);
-
-            var sw = Stopwatch.StartNew();
-
-            var partOneLinqResult = InputValues
-                .Where(x => InputValues.Contains(2020 - x))
-                .Aggregate(1, (a, b) => a * b);
-            
-            sw.Stop();
-
-            Console.Write("Part One [LINQ] - Result: " + partOneLinqResult);
-            Console.WriteLine($" - [{sw.ElapsedMilliseconds} ms => {sw.ElapsedTicks.ToString("0,0",CultureInfo.InvariantCulture)} ticks]");
-
-            // Why FirstOrDefault ? Another .Where() will return an array - this assumes only 1 correct answer so we return just that!
-
-            sw.Restart();
-
-            var partTwoLinqResult = InputValues
-                .Where(o => InputValues.FirstOrDefault(c => InputValues.Contains(2020 - o - c)) > 0)
-                .Aggregate(1, (a, b) => a * b);
-            
-            sw.Stop();
-            
-            Console.Write("Part Two [LINQ] - Result: " + partTwoLinqResult);
-            Console.WriteLine($" - [{sw.ElapsedMilliseconds} ms => {sw.ElapsedTicks.ToString("0,0",CultureInfo.InvariantCulture)} ticks]");
-
-            sw.Restart();
-
-            int DoPartOne()
-            {
-                foreach (var value in InputValues)
-                {
-                    var test = 2020 - value;
-                    
-                    if ( test > 0 && InputValues.Contains(test))
-                    {
-                        return test * value;
-                    }
-                }
-
-                return 0;
-            }
-            
-            var partOneResult = DoPartOne();
-
-            sw.Stop();
-
-            Console.Write("Part One [RAW] - Result: " + partOneResult);
-            Console.WriteLine($" - [{sw.ElapsedMilliseconds} ms => {sw.ElapsedTicks.ToString("0,0",CultureInfo.InvariantCulture)} ticks]");
-            
-            sw.Restart();
-
-            // Trick using C#7 local functions .. exits from nested foreach by using return.
-
-            int DoPartTwo()
-            {
-                foreach (var value in InputValues)
-                {
-                    foreach (var subValue in InputValues)
-                    {
-                        var test = 2020 - value - subValue;
-                        
-                        if ( test > 0 && InputValues.Contains(test))
-                        {
-                            return test * value * subValue;
-                        }
-                    }
-                }
-
-                return 0;
-            };
-
-            var partTwoResult = DoPartTwo();
-
-            sw.Stop();
-
-            Console.Write("Part Two [RAW] - Result: " + partTwoResult);
-            Console.WriteLine($" - [{sw.ElapsedMilliseconds} ms => {sw.ElapsedTicks.ToString("0,0",CultureInfo.InvariantCulture)} ticks]");
+            Console.WriteLine("Part Two [LINQ] => " + AoC1.PartTwoLinq(InputValues));
+            Console.WriteLine("Part Two [RAW ] => " + AoC1.PartTwoRaw(InputValues));
         }
     }
 }
